@@ -251,11 +251,11 @@ body {
     padding-inline: 8px;
   }
   .controls button {
-    flex: 1 1 calc(33.333% - 6px);
+    flex: 0 0 calc(25% - 6px);
     min-width: 0;
-    min-height: 52px;
-    font-size: 11px;
-    padding: 5px 4px;
+    min-height: 50px;
+    font-size: 10.5px;
+    padding: 5px 2px;
   }
   .controls button svg {
     width: 19px;
@@ -272,5 +272,276 @@ body {
     min-height: 44px;
     flex-direction: row;
     gap: 6px;
+  }
+}
+
+/* ------------------------------------------------------- design panel */
+
+.design-panel {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: min(360px, 92vw);
+  display: flex;
+  flex-direction: column;
+  background: rgba(14, 19, 27, 0.92);
+  border-inline-end: 1px solid var(--btn-border);
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: 6;
+  color: var(--ink);
+}
+
+.design-panel[hidden] {
+  display: none;
+}
+
+.dp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--btn-border);
+}
+
+.dp-head h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.dp-close {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--btn-border);
+  background: var(--btn-bg);
+  color: var(--ink);
+  font-size: 16px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.dp-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 10px 14px 16px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.dp-selected {
+  margin: 2px 0 4px;
+  font-size: 13px;
+  color: var(--ink-dim);
+}
+
+.dp-selected strong {
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.dp-hint {
+  margin: 0 0 10px;
+  font-size: 11.5px;
+  color: var(--ink-dim);
+}
+
+.dp-rooms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.dp-room {
+  min-height: 44px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--btn-border);
+  background: var(--btn-bg);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.dp-room.is-selected,
+.dp-swatch.is-selected,
+.dp-tile.is-selected {
+  border-color: rgba(127, 182, 255, 0.85);
+  background: rgba(48, 84, 133, 0.65);
+}
+
+.dp-section {
+  margin-bottom: 16px;
+}
+
+.dp-section h3 {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.dp-current {
+  font-size: 11.5px;
+  font-weight: 400;
+  color: var(--accent);
+  text-align: end;
+}
+
+.dp-swatches {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.dp-swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-height: 62px;
+  padding: 6px 2px;
+  border-radius: 12px;
+  border: 1px solid var(--btn-border);
+  background: rgba(28, 36, 49, 0.6);
+  color: var(--ink-dim);
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.dp-chip {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+}
+
+.dp-swatch-label {
+  font-size: 9.5px;
+  line-height: 1.15;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.dp-tile-group {
+  margin-bottom: 12px;
+}
+
+.dp-tile-group h4 {
+  margin: 0 0 6px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--ink-dim);
+}
+
+.dp-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.dp-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid var(--btn-border);
+  background: rgba(28, 36, 49, 0.6);
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.dp-tile img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+  background: #202833;
+}
+
+.dp-tile-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-height: 30px;
+}
+
+.dp-tile-look {
+  font-size: 11px;
+  color: var(--accent);
+}
+
+.dp-tile-model {
+  font-size: 11px;
+  color: var(--ink-dim);
+  overflow-wrap: anywhere;
+}
+
+.dp-foot {
+  padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--btn-border);
+}
+
+.dp-reset {
+  width: 100%;
+  min-height: 46px;
+  border-radius: 12px;
+  border: 1px solid var(--btn-border);
+  background: rgba(60, 30, 30, 0.55);
+  color: #ffd9d9;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.dp-swatches,
+.dp-tile-grid,
+.dp-rooms {
+  min-width: 0;
+}
+
+/* phones: bottom sheet */
+@media (max-width: 780px) {
+  .design-panel {
+    inset: auto 0 0 0;
+    width: 100%;
+    max-height: 66vh;
+    border-radius: 18px 18px 0 0;
+    border-inline-end: none;
+    border-top: 1px solid var(--btn-border);
+  }
+
+  .dp-body {
+    padding-bottom: 12px;
+  }
+
+  .dp-swatches {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* keep the toolbar and title clear of the side panel on desktop */
+@media (min-width: 781px) {
+  body.design-open .controls,
+  body.design-open .topbar {
+    inset-inline-start: 360px;
   }
 }

@@ -124,6 +124,7 @@ export function analyzeImage(img, options = {}) {
   return {
     rects,
     bounds,
+    wallMask: mask,
     gridWidth: w,
     gridHeight: h,
     imageWidth: srcW,
@@ -176,7 +177,7 @@ function boxCount(mask, w, h, radius) {
   return out;
 }
 
-function dilate(mask, w, h, radius) {
+export function dilate(mask, w, h, radius) {
   const counts = boxCount(mask, w, h, radius);
   const out = new Uint8Array(w * h);
   for (let i = 0; i < out.length; i++) out[i] = counts[i] > 0 ? 1 : 0;
@@ -303,7 +304,7 @@ function filterComponents(mask, w, h, { minBigArea, minSmallArea, minDiag, maxFi
  * then extend down while the whole span of rows is free.
  * Returns rectangles in grid units plus their bounding box.
  */
-function rectMerge(mask, w, h) {
+export function rectMerge(mask, w, h) {
   const used = new Uint8Array(w * h);
   const rects = [];
   let minX = w;

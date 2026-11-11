@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { extractWalls } from './plan-extract.js';
+import { detectRooms, assignWallsToRooms } from './rooms.js';
+import { createDesigner } from './design.js';
 
 const IMAGE_URL = 'assets/floorplan.jpg';
 
@@ -10,6 +12,7 @@ const IMAGE_URL = 'assets/floorplan.jpg';
 const PLAN_WIDTH = 24;
 const WALL_HEIGHT = 2.6;
 const WALL_PAD = 0.04; // world units added per side so thin lines read as walls
+const WALL_BASE_COLOR = '#ece4d6';
 const FLOOR_MARGIN_CELLS = 10;
 
 const state = {
@@ -132,6 +135,8 @@ const world = new THREE.Group();
 scene.add(world);
 
 let wallMesh = null;
+let designer = null;
+let wallRooms = [];
 let floorMesh = null;
 let slab = null;
 let planSize = { w: PLAN_WIDTH, d: PLAN_WIDTH };
@@ -153,6 +158,7 @@ function buildWallGeometry(rects, gridW, gridH, cell, offsetX, offsetY) {
   const per = 24;
   const positions = new Float32Array(rects.length * per * 3);
   const normals = new Float32Array(rects.length * per * 3);
+  const colors = new Float32Array(rects.length * per * 3);
   const indices = new Uint32Array(rects.length * 36);
 
   const faces = [
@@ -195,12 +201,20 @@ function buildWallGeometry(rects, gridW, gridH, cell, offsetX, offsetY) {
     }
   }
 
+  const base = new THREE.Color(WALL_BASE_COLOR);
+  for (let i = 0; i < colors.length; i += 3) {
+    colors[i] = base.r;
+    colors[i + 1] = base.g;
+    colors[i + 2] = base.b;
+  }
+
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   geo.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
   geo.setIndex(new THREE.BufferAttribute(indices, 1));
   geo.computeBoundingSphere();
-  return geo;
+  return { geometry: geo, colors };
 }
 
 async function buildModel() {
@@ -230,13 +244,16 @@ async function buildModel() {
   disposeObject(slab);
 
   // --- walls ----------------------------------------------------------------
-  const geo = buildWallGeometry(rects, gridWidth, gridHeight, cell, cx, cy);
+  const built = buildWallGeometry(rects, gridWidth, gridHeight, cell, cx, cy);
   const wallMat = new THREE.MeshStandardMaterial({
-    color: 0xece4d6,
+    color: 0xffffff,
+    vertexColors: true,
     roughness: 0.75,
     metalness: 0.03,
   });
-  wallMesh = new THREE.Mesh(geo, wallMat);
+  wallMesh = new THREE.Mesh(built.geometry, wallMat);
+  wallMesh.userData.colors = built.colors;
+  wallMesh.userData.baseColor = WALL_BASE_COLOR;
   wallMesh.castShadow = true;
   wallMesh.receiveShadow = true;
   wallMesh.name = 'walls';
@@ -295,13 +312,82 @@ async function buildModel() {
     closeRadius: analysis.stats.closeRadius,
   };
 
+  // --- rooms + per-room design ---------------------------------------------
+  let roomData = null;
+  try {
+    const detected = detectRooms(analysis.wallMask, gridWidth, gridHeight, {
+      sealRadius: Math.round(0.037 * gridWidth),
+    });
+    if (detected.rooms.length >= 2) {
+      roomData = detected;
+    } else {
+      console.warn('[viewer] room detection found too few rooms, using one room');
+    }
+  } catch (err) {
+    console.warn('[viewer] room detection failed', err);
+  }
+  if (!roomData) {
+    // graceful fallback: one room spanning the whole plan
+    const labels = new Int32Array(gridWidth * gridHeight);
+    const rects1 = [{ x: bounds.x, y: bounds.y, w: bounds.w, h: bounds.h }];
+    for (let y = bounds.y; y < bounds.y + bounds.h; y++) {
+      for (let x = bounds.x; x < bounds.x + bounds.w; x++) labels[y * gridWidth + x] = 1;
+    }
+    roomData = {
+      rooms: [{ id: 1, rects: rects1, cells: bounds.w * bounds.h, bbox: bounds, center: { x: 0, y: 0 } }],
+      labels,
+      fallback: true,
+    };
+  }
+  state.rooms = roomData.rooms.length;
+  state.roomsFallback = Boolean(roomData.fallback);
+  state.roomDetail = roomData.rooms.map((r) => ({ id: r.id, area: r.cells, rects: r.rects.length }));
+
+  wallRooms = assignWallsToRooms(rects, roomData.labels, gridWidth, gridHeight);
+  designer = createDesigner({
+    world,
+    camera,
+    canvas: renderer.domElement,
+    renderer,
+    wallMesh,
+    rooms: roomData.rooms,
+    labels: roomData.labels,
+    wallRooms,
+    cell,
+    cx,
+    cy,
+    gridWidth,
+    gridHeight,
+    imageAspect: imageHeight / imageWidth,
+  });
+  state.design = () => designer.state;
+  state.wallColorStats = () => {
+    const c = wallMesh.geometry.attributes.color.array;
+    const base = new THREE.Color(WALL_BASE_COLOR);
+    let changed = 0;
+    for (let i = 0; i < c.length; i += 72) {
+      if (
+        Math.abs(c[i] - base.r) > 0.004 ||
+        Math.abs(c[i + 1] - base.g) > 0.004 ||
+        Math.abs(c[i + 2] - base.b) > 0.004
+      ) {
+        changed++;
+      }
+    }
+    return { total: c.length / 72, changed };
+  };
+  state.wallRoomsFor = (id) => wallRooms.filter((list) => list.some((b) => b.room === id)).length;
+  state.floorFor = (id) => (designer ? designer.floorFor(id) : null);
+  state.roomScreenPoint = (id) => (designer ? designer.screenPointForRoom(id) : null);
+  state.world = () => world;
+
   key.shadow.camera.left = -planSize.w * 0.8;
   key.shadow.camera.right = planSize.w * 0.8;
   key.shadow.camera.top = planSize.d * 0.9;
   key.shadow.camera.bottom = -planSize.d * 0.9;
   key.shadow.camera.updateProjectionMatrix();
 
-  setStatus(`الجدران: ${rects.length} — اسحب للتدوير`, 'ok');
+  setStatus(`الجدران: ${rects.length} · الغرف: ${roomData.rooms.length}`, 'ok');
   hideLoading();
   state.ready = true;
   goHome(0);
@@ -400,7 +486,7 @@ function framedDistance(dir, target, margin = 0.78) {
 }
 
 const VIEW_DIRS = {
-  iso: new THREE.Vector3(0.8, 0.72, 1.05),
+  iso: new THREE.Vector3(0.8, 1.5, 1.05),
   top: new THREE.Vector3(0, 1, 0.0008),
   front: new THREE.Vector3(0, 0.26, 1),
   side: new THREE.Vector3(1, 0.26, 0),
@@ -409,7 +495,7 @@ const VIEW_DIRS = {
 // On a portrait phone the plan's long axis should run up the screen, not across,
 // otherwise most of the width is wasted and the model ends up tiny.
 const VIEW_DIRS_PORTRAIT = {
-  iso: new THREE.Vector3(1, 1.0, 0.04),
+  iso: new THREE.Vector3(1, 1.15, 0.04),
   top: new THREE.Vector3(0, 1, 0.0008),
   front: new THREE.Vector3(0, 0.26, 1),
   side: new THREE.Vector3(1, 0.26, 0),
@@ -496,6 +582,9 @@ function handleAction(action) {
       state.spin = !state.spin;
       controls.autoRotate = state.spin;
       setPressed(toggleButtons.spin, state.spin);
+      break;
+    case 'design':
+      if (designer) designer.toggle();
       break;
     case 'wire':
       if (wallMesh) {
