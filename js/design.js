@@ -286,7 +286,7 @@ export function createDesigner(ctx) {
     }
     if (tileSlot) {
       const tile = selectedRoom ? roomTiles.get(selectedRoom) : null;
-      tileSlot.textContent = tile ? `${tile.look} · ${tile.model}` : 'بدون بلاط';
+      tileSlot.textContent = tile ? `${tile.brand} · ${tile.model}` : 'بدون بلاط';
     }
     if (panel) {
       panel.querySelectorAll('[data-room]').forEach((el) => {
@@ -410,30 +410,40 @@ export function createDesigner(ctx) {
   function renderTileGallery(list) {
     const host = panel?.querySelector('[data-slot="tiles"]');
     if (!host) return;
-    const groups = new Map();
+
+    // brand → look → tiles, preserving manifest order (Cleopatra, then Royal)
+    const brands = new Map();
     for (const tile of list) {
-      if (!groups.has(tile.look)) groups.set(tile.look, []);
-      groups.get(tile.look).push(tile);
+      if (!brands.has(tile.brand)) brands.set(tile.brand, new Map());
+      const looks = brands.get(tile.brand);
+      if (!looks.has(tile.look)) looks.set(tile.look, []);
+      looks.get(tile.look).push(tile);
     }
-    host.innerHTML = [...groups.entries()]
+
+    const chip = (tile) => `
+      <button type="button" class="dp-tile" data-tile="${tile.id}" aria-pressed="false"
+              title="${tile.brand} · ${tile.look} · ${tile.model}">
+        <img src="${tile.file}" alt="${tile.brand} ${tile.look} ${tile.model}" loading="lazy" decoding="async" />
+        <span class="dp-tile-meta">
+          <span class="dp-tile-brand">${tile.brand}</span>
+          <span class="dp-tile-model">${tile.model}</span>
+        </span>
+      </button>`;
+
+    host.innerHTML = [...brands.entries()]
       .map(
-        ([look, items]) => `
-        <div class="dp-tile-group">
-          <h4>${look}</h4>
-          <div class="dp-tile-grid">
-            ${items
-              .map(
-                (tile) => `
-              <button type="button" class="dp-tile" data-tile="${tile.id}" aria-pressed="false" title="${tile.look} · ${tile.model}">
-                <img src="${tile.file}" alt="${tile.look} ${tile.model}" loading="lazy" decoding="async" />
-                <span class="dp-tile-meta">
-                  <span class="dp-tile-look">${tile.look}</span>
-                  <span class="dp-tile-model">${tile.model}</span>
-                </span>
-              </button>`
-              )
-              .join('')}
-          </div>
+        ([brand, looks]) => `
+        <div class="dp-brand-group">
+          <h4 class="dp-brand">${brand}</h4>
+          ${[...looks.entries()]
+            .map(
+              ([look, items]) => `
+            <div class="dp-look-group">
+              <h5 class="dp-look">${look}</h5>
+              <div class="dp-tile-grid">${items.map(chip).join('')}</div>
+            </div>`
+            )
+            .join('')}
         </div>`
       )
       .join('');
