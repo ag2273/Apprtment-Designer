@@ -411,7 +411,7 @@ export function createDesigner(ctx) {
     const host = panel?.querySelector('[data-slot="tiles"]');
     if (!host) return;
 
-    // brand → look → tiles, preserving manifest order (Cleopatra, then Royal)
+    // brand → look → tiles, preserving manifest order
     const brands = new Map();
     for (const tile of list) {
       if (!brands.has(tile.brand)) brands.set(tile.brand, new Map());

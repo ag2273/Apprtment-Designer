@@ -28,16 +28,15 @@ phones) that designs one room at a time:
   or tap it in the 3D view; the picked room is tinted and named in the panel.
 - **Walls** — 16 wall colours. Applying one recolours only the walls that touch
   that room; the rest of the plan keeps the default colour.
-- **Floors** — 28 ceramic tiles from two manufacturers (كليوباترا / Cleopatra and
-  رويال سيراميكا / Royal Ceramica), grouped by brand and then by look
-  (رخام / حجر / أسمنتي / تيرازو / خشب / لون / نقش / ديكور), with the brand on every
-  tile. The room gets a tiled floor mesh while the original drawing stays on the
-  floor everywhere else.
+- **Floors** — 16 ceramic tiles from the Cleopatra catalogue, grouped by brand
+  (كليوباترا) and then by look (رخام / حجر / أسمنتي / تيرازو / خشب / لون), with the
+  brand on every tile. The room gets a tiled floor mesh while the original
+  drawing stays on the floor everywhere else.
 - **إعادة تعيين التصميم** clears every colour and tile.
 
-Tile photos: public product catalogue images from Ceramica Cleopatra
-(cleopatraceramics.com) and Royal Ceramica, used here as swatches for a personal
-design preview — verify usage rights before any commercial use.
+Tile photos: public product catalogue of cleopatraceramics.com, used here as
+swatches for a personal design preview — verify usage rights before any
+commercial use.
 
 ## Controls
 
@@ -66,7 +65,7 @@ js/plan-extract.js  floor plan image → wall rectangles (no deps)
 js/rooms.js         wall mask → rooms, plus wall↔room adjacency
 js/design.js        per-room wall colours + tiled floors, design panel
 assets/floorplan.jpg  the source drawing (2400×1792)
-assets/tiles/       28 tile photos (cleopatra/ + royal/) + tiles.json manifest
+assets/tiles/       16 Cleopatra tile photos + tiles.json manifest
 ```
 
 ## How the walls are extracted
@@ -126,7 +125,7 @@ falls back to the other side, and with no coloured neighbour it stays default.
 Served with `python3 -m http.server` and driven in headless Chrome (SwiftShader
 WebGL): 29/29 checks pass on the design build — model renders with 166 wall
 boxes / 2006 triangles and 7 detected rooms, the panel opens with 16 swatches and
-28 tiles in 2 brand groups, a wall colour recolours only the selected room's walls (24 of 166
+16 tiles, a wall colour recolours only the selected room's walls (24 of 166
 boxes), a tile creates a textured floor for that room only, tapping a room in
 3D selects it, reset clears everything, every existing view/zoom/spin/wire
 control still works, the 390 px layout has no horizontal overflow with ≥44 px
