@@ -59,7 +59,7 @@ try {
     powerPreference: 'high-performance',
   });
 } catch (err) {
-  setLoading('WebGL is not available in this browser.');
+  setLoading('متصفحك لا يدعم WebGL.');
   throw err;
 }
 state.webgl = true;
@@ -204,7 +204,7 @@ function buildWallGeometry(rects, gridW, gridH, cell, offsetX, offsetY) {
 }
 
 async function buildModel() {
-  setLoading('Reading floor plan…');
+  setLoading('جارِ قراءة مخطط الشقة…');
   let analysis;
   try {
     analysis = await extractWalls(IMAGE_URL);
@@ -213,13 +213,13 @@ async function buildModel() {
     state.errors.push('wall extraction: ' + (err && err.message));
     // Clean fallback: flat textured plan, still fully navigable.
     await buildFloorOnly();
-    setStatus('Flat plan view — wall extraction unavailable', 'warn');
+    setStatus('عرض مسطّح — تعذّر استخراج الجدران', 'warn');
     hideLoading();
     state.ready = true;
     return;
   }
 
-  setLoading('Building 3D walls…');
+  setLoading('جارِ بناء الجدران ثلاثية الأبعاد…');
   const { rects, bounds, gridWidth, gridHeight, imageWidth, imageHeight } = analysis;
   const cell = PLAN_WIDTH / gridWidth;
   const cx = bounds.x + bounds.w / 2;
@@ -301,7 +301,7 @@ async function buildModel() {
   key.shadow.camera.bottom = -planSize.d * 0.9;
   key.shadow.camera.updateProjectionMatrix();
 
-  setStatus(`Walls: ${rects.length} boxes · drag to orbit`, 'ok');
+  setStatus(`الجدران: ${rects.length} — اسحب للتدوير`, 'ok');
   hideLoading();
   state.ready = true;
   goHome(0);
@@ -589,6 +589,6 @@ animate();
 buildModel().catch((err) => {
   console.error('[viewer] build failed', err);
   state.errors.push('build: ' + (err && err.message));
-  setStatus('Could not build the 3D model', 'error');
+  setStatus('تعذّر بناء النموذج ثلاثي الأبعاد', 'error');
   hideLoading();
 });

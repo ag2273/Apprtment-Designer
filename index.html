@@ -1,11 +1,14 @@
 <!doctype html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Apartment Design — 3D Viewer</title>
+  <title>تصميم الشقة — عارض ثلاثي الأبعاد</title>
   <meta name="theme-color" content="#0b0e14" />
-  <meta name="description" content="Interactive 3D view of an apartment floor plan. Orbit, pan and zoom on desktop or phone." />
+  <meta name="description" content="عرض ثلاثي الأبعاد تفاعلي لمخطط شقة. حرّك، قرّب، وانتقل بالمنظور على الحاسوب أو الهاتف." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" />
   <link rel="stylesheet" href="css/styles.css" />
   <script>
     // Collected so the page can report its own health (used by the smoke test).
@@ -28,60 +31,60 @@
 </head>
 <body>
   <div id="app">
-    <canvas id="scene" aria-label="3D apartment floor plan" role="img"></canvas>
+    <canvas id="scene" aria-label="مخطط الشقة ثلاثي الأبعاد" role="img"></canvas>
 
     <header class="topbar">
-      <h1>Apartment Design <span>— 3D Viewer</span></h1>
-      <p class="hint">Drag to orbit · pinch or scroll to zoom · two fingers or right-drag to pan</p>
-      <p class="hint hint--touch">Drag to orbit · pinch to zoom · two fingers to pan</p>
+      <h1>تصميم الشقة <span>— عارض ثلاثي الأبعاد</span></h1>
+      <p class="hint">اسحب للتدوير · قرّص أو مرّر للتقريب · إصبعان أو سحب بزر الفأرة الأيمن للتحريك</p>
+      <p class="hint hint--touch">اسحب للتدوير · قرّص للتقريب · إصبعان للتحريك</p>
     </header>
 
     <div id="status" class="status" role="status" aria-live="polite">
       <span class="dot"></span>
-      <span id="status-text">Loading floor plan…</span>
+      <span id="status-text">جارِ تحميل مخطط الشقة…</span>
     </div>
 
     <div id="loading" class="loading">
       <div class="spinner" aria-hidden="true"></div>
-      <span id="loading-text">Loading floor plan…</span>
+      <span id="loading-text">جارِ تحميل مخطط الشقة…</span>
     </div>
 
-    <div class="controls" role="toolbar" aria-label="View controls">
-      <button type="button" data-action="reset" title="Reset view">
+    <div class="controls" role="toolbar" aria-label="أدوات التحكم في العرض">
+      <button type="button" data-action="reset" title="إعادة تعيين العرض">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H4a8 8 0 1 0 8-8z"/></svg>
-        <span>Reset</span>
+        <span>إعادة تعيين</span>
       </button>
-      <button type="button" data-action="iso" title="Perspective view">
+      <button type="button" data-action="iso" title="عرض منظور">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 2 7.5v9L12 22l10-5.5v-9L12 2zm0 2.3 7.4 4.1-7.4 4.1-7.4-4.1L12 4.3zM4 9.2l6.5 3.6v6.9L4 16.1V9.2zm8.5 10.5v-6.9L19 9.2v6.9l-6.5 3.6z"/></svg>
-        <span>3D</span>
+        <span>مجسّم</span>
       </button>
-      <button type="button" data-action="top" title="Top-down view">
+      <button type="button" data-action="top" title="عرض من الأعلى">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h18v18H3V3zm2 2v14h14V5H5z"/></svg>
-        <span>Top</span>
+        <span>من الأعلى</span>
       </button>
-      <button type="button" data-action="front" title="Front view">
+      <button type="button" data-action="front" title="عرض من الأمام">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18v12H3V6zm2 2v8h14V8H5z"/></svg>
-        <span>Front</span>
+        <span>من الأمام</span>
       </button>
-      <button type="button" data-action="side" title="Side view">
+      <button type="button" data-action="side" title="عرض من الجانب">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18H6V3zm2 2v14h8V5H8z"/></svg>
-        <span>Side</span>
+        <span>من الجانب</span>
       </button>
-      <button type="button" data-action="zoom-in" title="Zoom in">
+      <button type="button" data-action="zoom-in" title="تكبير">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3h2v8h8v2h-8v8h-2v-8H3v-2h8V3z"/></svg>
-        <span>Zoom +</span>
+        <span>تكبير</span>
       </button>
-      <button type="button" data-action="zoom-out" title="Zoom out">
+      <button type="button" data-action="zoom-out" title="تصغير">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11h18v2H3z"/></svg>
-        <span>Zoom −</span>
+        <span>تصغير</span>
       </button>
-      <button type="button" data-action="spin" title="Toggle auto-rotate" aria-pressed="false">
+      <button type="button" data-action="spin" title="تشغيل / إيقاف التدوير التلقائي" aria-pressed="false">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4c4.4 0 8 3.6 8 8h2c0-5.5-4.5-10-10-10v2zm-8 8c0-4.4 3.6-8 8-8V2C6.5 2 2 6.5 2 12h2zm16 0c0 4.4-3.6 8-8 8v2c5.5 0 10-4.5 10-10h-2zM4 12c0 4.4 3.6 8 8 8v-2c-4.4 0-8-3.6-8-8H4z"/></svg>
-        <span>Spin</span>
+        <span>تدوير تلقائي</span>
       </button>
-      <button type="button" data-action="wire" title="Toggle wireframe walls (x-ray)" aria-pressed="false">
+      <button type="button" data-action="wire" title="إظهار الجدران كهيكل سلكي (شفاف)" aria-pressed="false">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 2 8v8l10 6 10-6V8L12 2zm0 2.3 7.4 4.4L12 13.1 4.6 8.7 12 4.3zM4 10.6l7 4.2v6.6l-7-4.2v-6.6zm9 10.8v-6.6l7-4.2v6.6l-7 4.2z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
-        <span>Wire</span>
+        <span>إطار سلكي</span>
       </button>
     </div>
   </div>
